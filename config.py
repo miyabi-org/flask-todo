@@ -15,8 +15,8 @@ class Config:
     if DB_HOST and DB_USER and DB_PASSWORD:
         SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     else:
-        # Use in-memory SQLite as fallback (will not persist data)
-        SQLALCHEMY_DATABASE_URI = "sqlite:///memory"
+        # Use file-based SQLite as fallback (in /tmp to ensure writability in Cloud Run)
+        SQLALCHEMY_DATABASE_URI = "sqlite:////tmp/todo.db"
         
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
