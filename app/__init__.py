@@ -27,13 +27,20 @@ def create_app(config_class=Config):
     app.register_blueprint(api)
     
     # Create tables if they don't exist - handle database errors gracefully
-    # We do this in a non-blocking way to avoid hanging the application startup
-    try:
-        with app.app_context():
-            db.create_all()
-            app.logger.info("Database tables created successfully")
-    except Exception as e:
-        app.logger.error(f"Database initialization error: {str(e)}")
-        app.logger.info("Application will continue to run with limited functionality")
+    # This is now executed in a separate function to ensure it doesn't block startup
+    def initialize_database():
+        try:
+            with app.app_context():
+                db.create_all()
+                app.logger.info("Database tables created successfully")
+        except Exception as e:
+            app.logger.error(f"Database initialization error: {str(e)}")
+            app.logger.info("Application will continue to run with limited functionality")
+    
+    # Start database initialization in a non-blocking way
+    import threading
+    db_thread = threading.Thread(target=initialize_database)
+    db_thread.daemon = True  # Make thread a daemon so it doesn't block app shutdown
+    db_thread.start()
     
     return app
