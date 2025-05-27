@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Todo App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #4285f4;
+        }
+        .status {
+            padding: 10px;
+            background-color: #e6f4ea;
+            border-radius: 4px;
+            border-left: 4px solid #34a853;
+            margin: 20px 0;
+        }
+        .links {
+            margin-top: 30px;
+        }
+        .links a {
+            display: block;
+            margin: 10px 0;
+            color: #4285f4;
+            text-decoration: none;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Flask Todo API</h1>
+    
+    <div class="status">
+        <p>Status: <strong>{{ status }}</strong></p>
+        <p>{{ message }}</p>
+    </div>
+    
+    <div class="links">
+        <h2>API Endpoints:</h2>
+        <a href="/api/todos">GET /api/todos - List all todos</a>
+        <a href="/api/todos/1">GET /api/todos/{id} - Get a specific todo</a>
+        <p>POST /api/todos - Create a new todo</p>
+        <p>PUT/PATCH /api/todos/{id} - Update a todo</p>
+        <p>DELETE /api/todos/{id} - Delete a todo</p>
+    </div>
+</body>
+</html>
