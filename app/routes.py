@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify, current_app
 from .models import db, Todo
-from .utils import upload_image_to_gcs, analyze_image
+from .utils import upload_image_to_gcs, analyze_image, cloud_executor
 from werkzeug.exceptions import BadRequest
 from io import BytesIO
+import concurrent.futures
 
 api = Blueprint('api', __name__, url_prefix='/api')
 
@@ -50,16 +51,29 @@ def create_todo():
             # Upload to GCS with improved error handling
             bucket_name = current_app.config['GCS_BUCKET_NAME']
             try:
-                image_url = upload_image_to_gcs(image_stream, image_file.filename, bucket_name)
+                # Use ThreadPoolExecutor with a timeout to prevent blocking
+                future = cloud_executor.submit(upload_image_to_gcs, image_stream, image_file.filename, bucket_name)
+                image_url = future.result(timeout=10)  # Wait up to 10 seconds for result
                 todo.image_url = image_url
                 
-                # Process with ML API
-                try:
-                    image_stream.seek(0)
-                    labels = analyze_image(image_stream)
-                    todo.labels = ','.join(labels) if labels else None
-                except Exception as e:
-                    current_app.logger.error(f"Error analyzing image: {str(e)}")
+                # Process with ML API in background
+                def process_image():
+                    try:
+                        image_stream.seek(0)
+                        labels = analyze_image(image_stream)
+                        if labels:
+                            with current_app.app_context():
+                                todo = Todo.query.get(todo.id)
+                                if todo:
+                                    todo.labels = ','.join(labels)
+                                    db.session.commit()
+                    except Exception as e:
+                        current_app.logger.error(f"Background image analysis error: {str(e)}")
+                
+                # Submit the ML processing to run in background
+                cloud_executor.submit(process_image)
+            except concurrent.futures.TimeoutError:
+                current_app.logger.error("GCS upload timed out - continuing without image")
             except Exception as e:
                 current_app.logger.error(f"Error uploading image to GCS: {str(e)}")
                 # Continue without image URL
@@ -99,16 +113,29 @@ def update_todo(todo_id):
             # Upload to GCS with improved error handling
             bucket_name = current_app.config['GCS_BUCKET_NAME']
             try:
-                image_url = upload_image_to_gcs(image_stream, image_file.filename, bucket_name)
+                # Use ThreadPoolExecutor with a timeout to prevent blocking
+                future = cloud_executor.submit(upload_image_to_gcs, image_stream, image_file.filename, bucket_name)
+                image_url = future.result(timeout=10)  # Wait up to 10 seconds for result
                 todo.image_url = image_url
                 
-                # Process with ML API
-                try:
-                    image_stream.seek(0)
-                    labels = analyze_image(image_stream)
-                    todo.labels = ','.join(labels) if labels else None
-                except Exception as e:
-                    current_app.logger.error(f"Error analyzing image: {str(e)}")
+                # Process with ML API in background
+                def process_image():
+                    try:
+                        image_stream.seek(0)
+                        labels = analyze_image(image_stream)
+                        if labels:
+                            with current_app.app_context():
+                                todo = Todo.query.get(todo.id)
+                                if todo:
+                                    todo.labels = ','.join(labels)
+                                    db.session.commit()
+                    except Exception as e:
+                        current_app.logger.error(f"Background image analysis error: {str(e)}")
+                
+                # Submit the ML processing to run in background
+                cloud_executor.submit(process_image)
+            except concurrent.futures.TimeoutError:
+                current_app.logger.error("GCS upload timed out - continuing without image")
             except Exception as e:
                 current_app.logger.error(f"Error uploading image to GCS: {str(e)}")
                 # Continue without updating image URL

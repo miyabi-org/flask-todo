@@ -1,8 +1,14 @@
 import os
 import uuid
+import time
 from io import BytesIO
 from google.cloud import storage, vision
 from werkzeug.utils import secure_filename
+import logging
+from concurrent.futures import ThreadPoolExecutor
+
+# Global executor for handling cloud operations in background threads
+cloud_executor = ThreadPoolExecutor(max_workers=4)
 
 def upload_image_to_gcs(file_stream, filename, bucket_name):
     """
@@ -36,7 +42,6 @@ def upload_image_to_gcs(file_stream, filename, bucket_name):
         return blob.public_url
     except Exception as e:
         # Log and re-raise the exception to be handled by the caller
-        import logging
         logging.error(f"GCS upload error: {str(e)}")
         raise
 
@@ -69,7 +74,6 @@ def analyze_image(file_stream):
         return [label.description for label in labels]
     except Exception as e:
         # Log and re-raise the exception to be handled by the caller
-        import logging
         logging.error(f"Vision API error: {str(e)}")
         # Return empty list instead of raising to allow application to continue
         return []

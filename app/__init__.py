@@ -18,6 +18,11 @@ def create_app(config_class=Config):
     @app.route('/')
     def index():
         return jsonify({"message": "Flask Todo API", "status": "online"}), 200
+        
+    # Add health check endpoint
+    @app.route('/health')
+    def health():
+        return jsonify({"status": "healthy"}), 200
     
     # Initialize extensions - moved after route definitions
     db.init_app(app)
