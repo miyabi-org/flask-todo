@@ -17,4 +17,4 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 EXPOSE 8080
 
 # Run the application
-CMD exec gunicorn --bind :8080 --workers 1 --threads 8 --timeout 30 main:app
+CMD exec gunicorn --bind :8080 --workers 1 --threads 8 --timeout 60 main:app
