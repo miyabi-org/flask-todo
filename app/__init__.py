@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, redirect
+from flask import Flask, jsonify, redirect, render_template
 from .models import db
 from config import Config
 import logging
@@ -17,7 +17,7 @@ def create_app(config_class=Config):
     # Create a root route that returns a simple status message
     @app.route('/')
     def index():
-        return jsonify({"message": "Flask Todo API", "status": "online"}), 200
+        return render_template('index.html', message="Flask Todo API", status="online")
         
     # Add health check endpoint
     @app.route('/health')
