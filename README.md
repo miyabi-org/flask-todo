@@ -51,3 +51,13 @@ A Flask-based Todo management application with image upload and automatic classi
 ## Deployment
 
 The application is automatically deployed to Google Cloud Run when changes are pushed to the main branch.
+
+## Cloud Resource Cleanup
+
+If you need to clean up Google Cloud resources associated with this application, please refer to the [CLEANUP_INSTRUCTIONS.md](CLEANUP_INSTRUCTIONS.md) document. The provided script will help you delete:
+
+- Cloud Run service
+- Google Cloud Storage bucket
+- Application database (while preserving the SQL Cloud instance)
+
+This is particularly useful when you no longer need the application or are planning to delete this repository.
