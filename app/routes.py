@@ -47,18 +47,22 @@ def create_todo():
             image_stream = BytesIO()
             image_file.save(image_stream)
             
-            # Upload to GCS
+            # Upload to GCS with improved error handling
             bucket_name = current_app.config['GCS_BUCKET_NAME']
-            image_url = upload_image_to_gcs(image_stream, image_file.filename, bucket_name)
-            todo.image_url = image_url
-            
-            # Process with ML API
             try:
-                image_stream.seek(0)
-                labels = analyze_image(image_stream)
-                todo.labels = ','.join(labels) if labels else None
+                image_url = upload_image_to_gcs(image_stream, image_file.filename, bucket_name)
+                todo.image_url = image_url
+                
+                # Process with ML API
+                try:
+                    image_stream.seek(0)
+                    labels = analyze_image(image_stream)
+                    todo.labels = ','.join(labels) if labels else None
+                except Exception as e:
+                    current_app.logger.error(f"Error analyzing image: {str(e)}")
             except Exception as e:
-                current_app.logger.error(f"Error analyzing image: {str(e)}")
+                current_app.logger.error(f"Error uploading image to GCS: {str(e)}")
+                # Continue without image URL
     
     # Save to database
     db.session.add(todo)
@@ -92,18 +96,22 @@ def update_todo(todo_id):
             image_stream = BytesIO()
             image_file.save(image_stream)
             
-            # Upload to GCS
+            # Upload to GCS with improved error handling
             bucket_name = current_app.config['GCS_BUCKET_NAME']
-            image_url = upload_image_to_gcs(image_stream, image_file.filename, bucket_name)
-            todo.image_url = image_url
-            
-            # Process with ML API
             try:
-                image_stream.seek(0)
-                labels = analyze_image(image_stream)
-                todo.labels = ','.join(labels) if labels else None
+                image_url = upload_image_to_gcs(image_stream, image_file.filename, bucket_name)
+                todo.image_url = image_url
+                
+                # Process with ML API
+                try:
+                    image_stream.seek(0)
+                    labels = analyze_image(image_stream)
+                    todo.labels = ','.join(labels) if labels else None
+                except Exception as e:
+                    current_app.logger.error(f"Error analyzing image: {str(e)}")
             except Exception as e:
-                current_app.logger.error(f"Error analyzing image: {str(e)}")
+                current_app.logger.error(f"Error uploading image to GCS: {str(e)}")
+                # Continue without updating image URL
     
     # Save changes
     db.session.commit()
